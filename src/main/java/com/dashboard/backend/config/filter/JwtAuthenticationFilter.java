@@ -111,15 +111,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
+        String servletPath = request.getServletPath();
+        
+        log.info("Checking path for JWT filter - URI: {}, ServletPath: {}", path, servletPath);
         
         // Ne pas appliquer le filtre aux endpoints publics
-        return path.startsWith("/api/v1/auth/") ||
-               path.startsWith("/api/v1/swagger-ui/") ||
-               path.startsWith("/api/v1/api-docs/") ||
-               path.startsWith("/swagger-ui.html") ||
-               path.startsWith("/v3/api-docs/") ||
-               path.equals("/api/v1/actuator/health") ||
-               path.equals("/api/v1/actuator/info") ||
-               path.startsWith("/api/v1/test/");
+        boolean shouldNotFilter = path.contains("/auth/") ||
+               path.contains("/swagger-ui") ||
+               path.contains("/api-docs") ||
+               path.contains("/actuator/health") ||
+               path.contains("/actuator/info") ||
+               path.contains("/test/");
+               
+        log.info("JWT filter should not filter this request: {} for path: {}", shouldNotFilter, path);
+        
+        return shouldNotFilter;
     }
 }

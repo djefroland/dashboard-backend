@@ -54,7 +54,13 @@ public class AuthController {
         
         log.info("Connexion réussie pour: {} (Role: {})", 
                 response.getUsername(), response.getRole());
-
+        
+        // Log détaillé de la réponse pour debug
+        log.info("Contenu de la réponse: accessToken={}, refreshToken={}, username={}", 
+                response.getAccessToken(), 
+                response.getRefreshToken(), 
+                response.getUsername());
+                
         return ResponseEntity.ok(response);
     }
 
