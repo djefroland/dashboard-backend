@@ -2,7 +2,7 @@
 -- Mise à jour de la table des demandes de congés avec le workflow complet
 
 ALTER TABLE leave_requests ADD COLUMN employee_id VARCHAR(50) NULL;
-ALTER TABLE leave_requests ADD COLUMN return_date DATE NOT NULL DEFAULT '1900-01-01';
+-- La colonne return_date existe déjà, nous la supprimons de cette migration
 ALTER TABLE leave_requests ADD COLUMN emergency_contact VARCHAR(255) NULL;
 ALTER TABLE leave_requests ADD COLUMN replacement_person VARCHAR(255) NULL;
 ALTER TABLE leave_requests ADD COLUMN handover_notes TEXT NULL;
