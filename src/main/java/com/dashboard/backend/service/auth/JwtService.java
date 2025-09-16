@@ -1,10 +1,11 @@
 package com.dashboard.backend.service.auth;
 
+import com.dashboard.backend.config.properties.JwtProperties;
 import com.dashboard.backend.entity.user.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -20,25 +21,16 @@ import java.util.function.Function;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class JwtService {
 
-    @Value("${app.jwt.secret}")
-    private String jwtSecret;
-
-    @Value("${app.jwt.expiration}")
-    private Long jwtExpirationMs;
-
-    @Value("${app.jwt.refresh-expiration}")
-    private Long refreshExpirationMs;
-
-    @Value("${app.jwt.issuer}")
-    private String jwtIssuer;
+    private final JwtProperties jwtProperties;
 
     /**
      * Génère la clé secrète pour signer les tokens
      */
     private SecretKey getSigningKey() {
-        byte[] keyBytes = jwtSecret.getBytes();
+        byte[] keyBytes = jwtProperties.getSecret().getBytes();
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -53,7 +45,7 @@ public class JwtService {
         claims.put("fullName", user.getFullName());
         claims.put("requiresTimeTracking", user.shouldTrackTime());
         
-        return createToken(claims, user.getUsername(), jwtExpirationMs);
+        return createToken(claims, user.getUsername(), jwtProperties.getExpiration());
     }
 
     /**
@@ -64,7 +56,7 @@ public class JwtService {
         claims.put("userId", user.getId());
         claims.put("tokenType", "refresh");
         
-        return createToken(claims, user.getUsername(), refreshExpirationMs);
+        return createToken(claims, user.getUsername(), jwtProperties.getRefreshExpiration());
     }
 
     /**
@@ -77,7 +69,7 @@ public class JwtService {
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)
-                .issuer(jwtIssuer)
+                .issuer(jwtProperties.getIssuer())
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())

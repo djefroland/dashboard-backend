@@ -6,9 +6,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +23,7 @@ import java.io.IOException;
 /**
  * Filtre JWT pour l'authentification automatique
  * Intercepte chaque requête pour vérifier et valider le token JWT
+ * Utilise l'injection tardive pour éviter les dépendances circulaires
  */
 @Component
 @Slf4j
@@ -30,9 +31,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtService jwtService;
-
+    
     @Autowired
-    private AuthService authService;
+    private ApplicationContext applicationContext;
+    
+    // Cette méthode permet d'obtenir AuthService de manière paresseuse
+    // pour éviter la dépendance circulaire lors du démarrage
+    private AuthService getAuthService() {
+        return applicationContext.getBean(AuthService.class);
+    }
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
@@ -56,8 +63,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 4. Si l'utilisateur n'est pas déjà authentifié dans le contexte de sécurité
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     
-                    // 5. Chargement des détails de l'utilisateur
-                    UserDetails userDetails = authService.loadUserByUsername(username);
+                    // 5. Chargement des détails de l'utilisateur (utilise la méthode paresseuse)
+                    UserDetails userDetails = getAuthService().loadUserByUsername(username);
 
                     // 6. Validation du token avec les détails de l'utilisateur
                     if (jwtService.validateToken(jwt, userDetails)) {
@@ -78,13 +85,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                         log.debug("Utilisateur authentifié: {} avec les rôles: {}", 
                             username, userDetails.getAuthorities());
+                    } else {
+                        log.debug("Token JWT invalide pour l'utilisateur: {}", username);
                     }
+                } else {
+                    log.debug("Utilisateur déjà authentifié ou nom d'utilisateur null");
                 }
+            } else {
+                log.debug("Pas de token JWT valide trouvé dans la requête");
             }
 
         } catch (Exception e) {
-            log.error("Erreur lors de l'authentification JWT: {}", e.getMessage());
-            // Ne pas bloquer la requête, laisser Spring Security gérer l'accès non autorisé
+            log.error("Erreur lors de l'authentification JWT: {}", e.getMessage(), e);
+            // Nettoyer le contexte de sécurité en cas d'erreur
+            SecurityContextHolder.clearContext();
         }
 
         // 10. Continuer la chaîne de filtres
@@ -98,7 +112,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
         
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(BEARER_PREFIX.length());
+            String token = bearerToken.substring(BEARER_PREFIX.length());
+            log.debug("Token JWT extrait de l'header Authorization");
+            return token;
         }
         
         return null;
@@ -106,14 +122,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * Détermine si ce filtre doit être appliqué à cette requête
-     * Peut être surchargé pour exclure certains endpoints
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        String servletPath = request.getServletPath();
-        
-        log.info("Checking path for JWT filter - URI: {}, ServletPath: {}", path, servletPath);
         
         // Ne pas appliquer le filtre aux endpoints publics
         boolean shouldNotFilter = path.contains("/auth/") ||
@@ -123,7 +135,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                path.contains("/actuator/info") ||
                path.contains("/test/");
                
-        log.info("JWT filter should not filter this request: {} for path: {}", shouldNotFilter, path);
+        if (shouldNotFilter) {
+            log.debug("JWT filter bypassed for public endpoint: {}", path);
+        }
         
         return shouldNotFilter;
     }
