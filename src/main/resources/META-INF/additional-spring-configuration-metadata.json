@@ -1,0 +1,145 @@
+{
+    "properties": [
+        {
+            "name": "app.jwt.secret",
+            "type": "java.lang.String",
+            "description": "Secret key used for signing JWT tokens"
+        },
+        {
+            "name": "app.jwt.expiration",
+            "type": "java.lang.Long",
+            "description": "JWT token expiration time in milliseconds"
+        },
+        {
+            "name": "app.jwt.refresh-expiration",
+            "type": "java.lang.Long",
+            "description": "JWT refresh token expiration time in milliseconds"
+        },
+        {
+            "name": "app.jwt.issuer",
+            "type": "java.lang.String",
+            "description": "JWT token issuer name"
+        },
+        {
+            "name": "app.security.director.bypass-time-tracking",
+            "type": "java.lang.Boolean",
+            "description": "Whether directors can bypass time tracking"
+        },
+        {
+            "name": "app.security.hr.can-export-data",
+            "type": "java.lang.Boolean",
+            "description": "Whether HR personnel can export data"
+        },
+        {
+            "name": "app.security.team-leader.can-approve-first-level",
+            "type": "java.lang.Boolean",
+            "description": "Whether team leaders can approve first level requests"
+        },
+        {
+            "name": "app.security.employee.requires-time-tracking",
+            "type": "java.lang.Boolean",
+            "description": "Whether employees are required to track time"
+        },
+        {
+            "name": "app.security.intern.requires-time-tracking",
+            "type": "java.lang.Boolean",
+            "description": "Whether interns are required to track time"
+        },
+        {
+            "name": "app.workflow.leave-approval.require-team-leader-first",
+            "type": "java.lang.Boolean",
+            "description": "Whether leave approval requires team leader approval first"
+        },
+        {
+            "name": "app.workflow.leave-approval.require-hr-final",
+            "type": "java.lang.Boolean",
+            "description": "Whether leave approval requires HR final approval"
+        },
+        {
+            "name": "app.workflow.employee-creation.require-director-validation",
+            "type": "java.lang.Boolean",
+            "description": "Whether employee creation requires director validation"
+        },
+        {
+            "name": "app.workflow.notifications.enabled",
+            "type": "java.lang.Boolean",
+            "description": "Whether workflow notifications are enabled"
+        },
+        {
+            "name": "app.business.attendance.max-hours-per-day",
+            "type": "java.lang.Integer",
+            "description": "Maximum working hours per day"
+        },
+        {
+            "name": "app.business.attendance.min-hours-per-day",
+            "type": "java.lang.Integer",
+            "description": "Minimum working hours per day"
+        },
+        {
+            "name": "app.business.leave.max-days-per-request",
+            "type": "java.lang.Integer",
+            "description": "Maximum days allowed per leave request"
+        },
+        {
+            "name": "app.business.leave.advance-notice-days",
+            "type": "java.lang.Integer",
+            "description": "Required advance notice days for leave requests"
+        },
+        {
+            "name": "app.notifications.leave-approval.enabled",
+            "type": "java.lang.Boolean",
+            "description": "Whether leave approval notifications are enabled"
+        },
+        {
+            "name": "app.notifications.employee-creation.enabled",
+            "type": "java.lang.Boolean",
+            "description": "Whether employee creation notifications are enabled"
+        },
+        {
+            "name": "app.notifications.absence-alert.enabled",
+            "type": "java.lang.Boolean",
+            "description": "Whether absence alert notifications are enabled"
+        },
+        {
+            "name": "app.notifications.performance-review.enabled",
+            "type": "java.lang.Boolean",
+            "description": "Whether performance review notifications are enabled"
+        }
+    ],
+    "hints": [
+        {
+            "name": "app.jwt.expiration",
+            "values": [
+                {
+                    "value": 86400000,
+                    "description": "24 hours (default)"
+                },
+                {
+                    "value": 3600000,
+                    "description": "1 hour"
+                },
+                {
+                    "value": 43200000,
+                    "description": "12 hours"
+                }
+            ]
+        },
+        {
+            "name": "app.jwt.refresh-expiration",
+            "values": [
+                {
+                    "value": 604800000,
+                    "description": "7 days (default)"
+                },
+                {
+                    "value": 1209600000,
+                    "description": "14 days"
+                },
+                {
+                    "value": 2592000000,
+                    "description": "30 days"
+                }
+            ]
+        }
+    ]
+}

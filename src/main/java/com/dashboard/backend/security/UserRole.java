@@ -11,7 +11,7 @@ package com.dashboard.backend.security;
  * - INTERN : Stagiaire, mêmes droits que Employee + spécificités
  */
 public enum UserRole {
-    
+
     /**
      * Directeur - Niveau le plus élevé
      * - Accès à toutes les fonctionnalités
@@ -20,7 +20,7 @@ public enum UserRole {
      * - Voit les stats globales
      */
     DIRECTOR("Directeur", 1, false),
-    
+
     /**
      * Ressources Humaines
      * - Gestion complète des employés
@@ -29,7 +29,7 @@ public enum UserRole {
      * - Pointage optionnel selon configuration
      */
     HR("RH", 2, true),
-    
+
     /**
      * Team Leader
      * - Gestion de son équipe
@@ -38,7 +38,7 @@ public enum UserRole {
      * - Pointage requis
      */
     TEAM_LEADER("Team Leader", 3, true),
-    
+
     /**
      * Employé standard
      * - Pointage requis
@@ -47,7 +47,7 @@ public enum UserRole {
      * - Consultation des annonces
      */
     EMPLOYEE("Employé", 4, true),
-    
+
     /**
      * Stagiaire
      * - Mêmes droits que Employee
@@ -74,6 +74,14 @@ public enum UserRole {
     }
 
     /**
+     * Vérifie si l'utilisateur peut gérer les rapports
+     */
+    public boolean canManageReports() {
+        return this == HR || this == DIRECTOR;
+    }
+
+    /**
+
      * Niveau hiérarchique (1 = plus élevé)
      */
     public int getHierarchyLevel() {
@@ -134,12 +142,22 @@ public enum UserRole {
      */
     public UserRole[] getSubordinateRoles() {
         return switch (this) {
-            case DIRECTOR -> new UserRole[]{HR, TEAM_LEADER, EMPLOYEE, INTERN};
-            case HR -> new UserRole[]{TEAM_LEADER, EMPLOYEE, INTERN};
-            case TEAM_LEADER -> new UserRole[]{EMPLOYEE, INTERN};
-            case EMPLOYEE, INTERN -> new UserRole[]{};
+            case DIRECTOR -> new UserRole[] { HR, TEAM_LEADER, EMPLOYEE, INTERN };
+            case HR -> new UserRole[] { TEAM_LEADER, EMPLOYEE, INTERN };
+            case TEAM_LEADER -> new UserRole[] { EMPLOYEE, INTERN };
+            case EMPLOYEE, INTERN -> new UserRole[] {};
         };
     }
+
+    // À ajouter dans src/main/java/com/dashboard/backend/security/UserRole.java :
+
+    /**
+     * Vérifie si l'utilisateur doit pointer ses heures
+     */
+    public boolean shouldTrackTime() {
+        return this == EMPLOYEE || this == INTERN || this == TEAM_LEADER;
+    }
+
 
     /**
      * Factory method pour créer un UserRole à partir d'une string
@@ -148,12 +166,13 @@ public enum UserRole {
         if (role == null) {
             throw new IllegalArgumentException("Le rôle ne peut pas être null");
         }
-        
+
         try {
             return UserRole.valueOf(role.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Rôle invalide: " + role + 
-                ". Rôles valides: DIRECTOR, HR, TEAM_LEADER, EMPLOYEE, INTERN");
+            throw new IllegalArgumentException("Rôle invalide: " + role +
+                    ". Rôles valides: DIRECTOR, HR, TEAM_LEADER, EMPLOYEE, INTERN");
+
         }
     }
 }

@@ -5,11 +5,12 @@ import com.dashboard.backend.dto.auth.LoginResponse;
 import com.dashboard.backend.entity.user.User;
 import com.dashboard.backend.exception.custom.UnauthorizedActionException;
 import com.dashboard.backend.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.context.ApplicationContext;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -23,49 +24,49 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+
 import java.util.Optional;
 
 /**
  * Service principal d'authentification
- * Gère la connexion, déconnexion et validation des utilisateurs
+ * Utilise l'injection paresseuse pour éviter les dépendances circulaires
+
  */
 @Service
 @Slf4j
 @Transactional
 public class AuthService implements UserDetailsService {
 
-    private final UserRepository userRepository;
-    private final JwtService jwtService;
-    private final PasswordEncoder passwordEncoder;
-    private AuthenticationManager authenticationManager;
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private JwtService jwtService;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private ApplicationContext applicationContext;
+    
+    // Récupération paresseuse du AuthenticationManager pour éviter la dépendance circulaire
+    private AuthenticationManager getAuthenticationManager() {
+        return applicationContext.getBean(AuthenticationManager.class);
+    }
 
     @Value("${app.jwt.expiration}")
     private Long jwtExpirationMs;
-    
-    // Utilisation de @Autowired au lieu de @RequiredArgsConstructor pour contrôler l'injection
-    @Autowired
-    public AuthService(UserRepository userRepository, JwtService jwtService, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.jwtService = jwtService;
-        this.passwordEncoder = passwordEncoder;
-    }
-    
-    // Injection de AuthenticationManager séparément avec @Lazy pour briser la dépendance circulaire
-    @Autowired
-    public void setAuthenticationManager(@Lazy AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
-    }
 
     /**
      * Authentification d'un utilisateur
      */
-    public LoginResponse login(LoginRequest loginRequest) {
+    public LoginResponse login(LoginRequest loginRequest, HttpServletRequest request) {
         try {
             log.info("Tentative de connexion pour l'utilisateur: {}", loginRequest.getIdentifier());
 
-            // 1. Authentification avec Spring Security
-            Authentication authentication = authenticationManager.authenticate(
+            // 1. Authentification avec Spring Security (utilise la méthode paresseuse)
+            Authentication authentication = getAuthenticationManager().authenticate(
+
                 new UsernamePasswordAuthenticationToken(
                     loginRequest.getIdentifier(),
                     loginRequest.getPassword()
@@ -115,24 +116,22 @@ public class AuthService implements UserDetailsService {
      */
     public LoginResponse refreshToken(String refreshToken) {
         try {
-            // 1. Validation du refresh token
+
             if (!jwtService.validateToken(refreshToken) || !jwtService.isRefreshToken(refreshToken)) {
                 throw new UnauthorizedActionException("Token de rafraîchissement invalide");
             }
 
-            // 2. Extraction des informations utilisateur
+
             String username = jwtService.extractUsername(refreshToken);
             User user = findUserByIdentifier(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
 
-            // 3. Vérifications
             validateUserStatus(user);
 
-            // 4. Génération de nouveaux tokens
             String newAccessToken = jwtService.generateAccessToken(user);
             String newRefreshToken = jwtService.generateRefreshToken(user);
 
-            // 5. Création de la réponse
+
             LoginResponse response = LoginResponse.fromUser(
                 user, 
                 newAccessToken, 
@@ -151,16 +150,14 @@ public class AuthService implements UserDetailsService {
 
     /**
      * Déconnexion d'un utilisateur
-     * Note: Avec JWT stateless, la déconnexion côté serveur est optionnelle
+
      */
     public void logout(String token) {
         try {
             if (jwtService.validateToken(token)) {
                 String username = jwtService.extractUsername(token);
                 log.info("Déconnexion de l'utilisateur: {}", username);
-                
-                // Ici on pourrait ajouter le token à une blacklist si nécessaire
-                // Pour l'instant, on se contente de logger
+
             }
         } catch (Exception e) {
             log.warn("Erreur lors de la déconnexion: {}", e.getMessage());
@@ -186,14 +183,16 @@ public class AuthService implements UserDetailsService {
     }
 
     /**
-     * Recherche d'un utilisateur par identifiant (username ou email)
+     * Recherche d'un utilisateur par identifiant
+
      */
     private Optional<User> findUserByIdentifier(String identifier) {
         return userRepository.findByUsernameOrEmail(identifier);
     }
 
     /**
-     * Implémentation de UserDetailsService pour Spring Security
+     * Implémentation de UserDetailsService
+
      */
     @Override
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
@@ -227,18 +226,18 @@ public class AuthService implements UserDetailsService {
     }
 
     /**
-     * Changement de mot de passe (nécessite l'ancien mot de passe)
+     * Changement de mot de passe
+
      */
     public void changePassword(Long userId, String oldPassword, String newPassword) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
 
-        // Vérification de l'ancien mot de passe
+
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new UnauthorizedActionException("Ancien mot de passe incorrect");
         }
 
-        // Mise à jour du mot de passe
         user.setPassword(passwordEncoder.encode(newPassword));
         user.updatePasswordChangedDate();
         userRepository.save(user);
@@ -247,9 +246,10 @@ public class AuthService implements UserDetailsService {
     }
 
     /**
-     * Vérifie si c'est la première connexion de l'utilisateur
+     * Vérifie si c'est la première connexion
      */
     public boolean isFirstLogin(User user) {
-        return user.getLastLoginDate() == null;
-    }
-}
+                    return user.getLastLoginDate() == null;
+                }
+        }
+

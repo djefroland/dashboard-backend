@@ -50,7 +50,9 @@ public class AuthController {
         log.info("Tentative de connexion pour: {} depuis IP: {}", 
                 loginRequest.getIdentifier(), getClientIpAddress(request));
 
-        LoginResponse response = authService.login(loginRequest);
+ structure
+        LoginResponse response = authService.login(loginRequest, request);
+
         
         log.info("Connexion réussie pour: {} (Role: {})", 
                 response.getUsername(), response.getRole());
