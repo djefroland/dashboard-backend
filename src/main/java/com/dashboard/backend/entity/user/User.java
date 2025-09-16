@@ -181,5 +181,5 @@ public class User extends BaseEntity implements UserDetails {
     public void markEmailAsVerified() {
         this.emailVerifiedAt = LocalDateTime.now();
     }
-    
+
 }

@@ -81,6 +81,7 @@ public enum UserRole {
     }
 
     /**
+
      * Niveau hiérarchique (1 = plus élevé)
      */
     public int getHierarchyLevel() {
@@ -157,6 +158,7 @@ public enum UserRole {
         return this == EMPLOYEE || this == INTERN || this == TEAM_LEADER;
     }
 
+
     /**
      * Factory method pour créer un UserRole à partir d'une string
      */
@@ -170,6 +172,7 @@ public enum UserRole {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Rôle invalide: " + role +
                     ". Rôles valides: DIRECTOR, HR, TEAM_LEADER, EMPLOYEE, INTERN");
+
         }
     }
 }

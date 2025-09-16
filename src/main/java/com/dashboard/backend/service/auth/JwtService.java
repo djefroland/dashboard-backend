@@ -6,6 +6,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -26,11 +27,13 @@ public class JwtService {
 
     private final JwtProperties jwtProperties;
 
+
     /**
      * Génère la clé secrète pour signer les tokens
      */
     private SecretKey getSigningKey() {
         byte[] keyBytes = jwtProperties.getSecret().getBytes();
+
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -46,6 +49,7 @@ public class JwtService {
         claims.put("requiresTimeTracking", user.shouldTrackTime());
         
         return createToken(claims, user.getUsername(), jwtProperties.getExpiration());
+
     }
 
     /**
@@ -57,6 +61,7 @@ public class JwtService {
         claims.put("tokenType", "refresh");
         
         return createToken(claims, user.getUsername(), jwtProperties.getRefreshExpiration());
+
     }
 
     /**
@@ -70,6 +75,7 @@ public class JwtService {
                 .claims(claims)
                 .subject(subject)
                 .issuer(jwtProperties.getIssuer())
+
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())

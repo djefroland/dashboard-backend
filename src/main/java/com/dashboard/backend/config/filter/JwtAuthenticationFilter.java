@@ -6,9 +6,11 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,6 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return applicationContext.getBean(AuthService.class);
     }
 
+
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
 
@@ -65,6 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     
                     // 5. Chargement des détails de l'utilisateur (utilise la méthode paresseuse)
                     UserDetails userDetails = getAuthService().loadUserByUsername(username);
+
 
                     // 6. Validation du token avec les détails de l'utilisateur
                     if (jwtService.validateToken(jwt, userDetails)) {
@@ -99,6 +103,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.error("Erreur lors de l'authentification JWT: {}", e.getMessage(), e);
             // Nettoyer le contexte de sécurité en cas d'erreur
             SecurityContextHolder.clearContext();
+
         }
 
         // 10. Continuer la chaîne de filtres
@@ -115,6 +120,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = bearerToken.substring(BEARER_PREFIX.length());
             log.debug("Token JWT extrait de l'header Authorization");
             return token;
+
         }
         
         return null;
@@ -138,6 +144,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (shouldNotFilter) {
             log.debug("JWT filter bypassed for public endpoint: {}", path);
         }
+
         
         return shouldNotFilter;
     }

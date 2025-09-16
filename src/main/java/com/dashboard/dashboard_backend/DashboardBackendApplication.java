@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+
 @SpringBootApplication(
     exclude = { ManagementWebSecurityAutoConfiguration.class },
     scanBasePackages = {"com.dashboard.backend", "com.dashboard.dashboard_backend"}
@@ -16,6 +17,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EntityScan("com.dashboard.backend.entity")
 @EnableJpaRepositories("com.dashboard.backend.repository")
 @EnableConfigurationProperties
+
 public class DashboardBackendApplication {
 
 	public static void main(String[] args) {

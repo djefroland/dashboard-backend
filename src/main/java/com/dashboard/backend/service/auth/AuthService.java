@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -23,11 +24,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
 import java.util.Optional;
 
 /**
  * Service principal d'authentification
  * Utilise l'injection paresseuse pour éviter les dépendances circulaires
+
  */
 @Service
 @Slf4j
@@ -63,6 +66,7 @@ public class AuthService implements UserDetailsService {
 
             // 1. Authentification avec Spring Security (utilise la méthode paresseuse)
             Authentication authentication = getAuthenticationManager().authenticate(
+
                 new UsernamePasswordAuthenticationToken(
                     loginRequest.getIdentifier(),
                     loginRequest.getPassword()
@@ -112,9 +116,11 @@ public class AuthService implements UserDetailsService {
      */
     public LoginResponse refreshToken(String refreshToken) {
         try {
+
             if (!jwtService.validateToken(refreshToken) || !jwtService.isRefreshToken(refreshToken)) {
                 throw new UnauthorizedActionException("Token de rafraîchissement invalide");
             }
+
 
             String username = jwtService.extractUsername(refreshToken);
             User user = findUserByIdentifier(username)
@@ -124,6 +130,7 @@ public class AuthService implements UserDetailsService {
 
             String newAccessToken = jwtService.generateAccessToken(user);
             String newRefreshToken = jwtService.generateRefreshToken(user);
+
 
             LoginResponse response = LoginResponse.fromUser(
                 user, 
@@ -143,12 +150,14 @@ public class AuthService implements UserDetailsService {
 
     /**
      * Déconnexion d'un utilisateur
+
      */
     public void logout(String token) {
         try {
             if (jwtService.validateToken(token)) {
                 String username = jwtService.extractUsername(token);
                 log.info("Déconnexion de l'utilisateur: {}", username);
+
             }
         } catch (Exception e) {
             log.warn("Erreur lors de la déconnexion: {}", e.getMessage());
@@ -175,6 +184,7 @@ public class AuthService implements UserDetailsService {
 
     /**
      * Recherche d'un utilisateur par identifiant
+
      */
     private Optional<User> findUserByIdentifier(String identifier) {
         return userRepository.findByUsernameOrEmail(identifier);
@@ -182,6 +192,7 @@ public class AuthService implements UserDetailsService {
 
     /**
      * Implémentation de UserDetailsService
+
      */
     @Override
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
@@ -216,10 +227,12 @@ public class AuthService implements UserDetailsService {
 
     /**
      * Changement de mot de passe
+
      */
     public void changePassword(Long userId, String oldPassword, String newPassword) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+
 
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new UnauthorizedActionException("Ancien mot de passe incorrect");
@@ -239,3 +252,4 @@ public class AuthService implements UserDetailsService {
                     return user.getLastLoginDate() == null;
                 }
         }
+
