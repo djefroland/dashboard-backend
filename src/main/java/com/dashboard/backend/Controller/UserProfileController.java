@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/users")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Profil Utilisateur", description = "APIs pour la gestion du profil utilisateur")

@@ -24,7 +24,7 @@ import java.util.Map;
  * Gestion de la connexion, déconnexion et rafraîchissement des tokens
  */
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Authentification", description = "APIs pour l'authentification des utilisateurs")
@@ -50,7 +50,6 @@ public class AuthController {
         log.info("Tentative de connexion pour: {} depuis IP: {}", 
                 loginRequest.getIdentifier(), getClientIpAddress(request));
 
- structure
         LoginResponse response = authService.login(loginRequest, request);
 
         

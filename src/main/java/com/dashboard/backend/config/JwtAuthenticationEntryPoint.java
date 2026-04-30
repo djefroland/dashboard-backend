@@ -30,9 +30,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
                         HttpServletResponse response,
                         AuthenticationException authException) throws IOException, ServletException {
 
-        // Si c'est un endpoint d'authentification comme /api/v1/auth/login, ne pas intercepter
+        // Si c'est un endpoint d'authentification comme /auth/login, ne pas intercepter
         String requestUri = request.getRequestURI();
-        if (requestUri.equals("/api/v1/auth/login")) {
+        if (requestUri.equals("/auth/login")) {
             // Laisser passer la requête pour qu'elle soit traitée par le contrôleur d'authentification
             return;
         }

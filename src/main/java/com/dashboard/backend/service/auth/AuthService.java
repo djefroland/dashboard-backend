@@ -64,31 +64,44 @@ public class AuthService implements UserDetailsService {
         try {
             log.info("Tentative de connexion pour l'utilisateur: {}", loginRequest.getIdentifier());
 
-            // 1. Authentification avec Spring Security (utilise la méthode paresseuse)
-            Authentication authentication = getAuthenticationManager().authenticate(
+            // 1. Charger l'utilisateur d'abord pour vérifier
+            User user = findUserByIdentifier(loginRequest.getIdentifier())
+                .orElseThrow(() -> {
+                    log.error("UTILISATEUR NON TROUVÉ: {}", loginRequest.getIdentifier());
+                    return new UsernameNotFoundException("Utilisateur non trouvé");
+                });
 
+            log.info("Utilisateur trouvé: {} - ID: {}, enabled: {}, account_non_expired: {}", 
+                user.getUsername(), user.getId(), user.isEnabled(), user.isAccountNonExpired());
+
+            // 2. Vérifications du statut du compte AVANT authentification
+            validateUserStatus(user);
+
+            // 3. Vérifier le mot de passe manuellement avec logging
+            boolean passwordMatches = passwordEncoder.matches(loginRequest.getPassword(), user.getPassword());
+            log.info("Vérification du mot de passe pour {}: {}", user.getUsername(), passwordMatches);
+            if (!passwordMatches) {
+                log.error("MOT DE PASSE INCORRECT pour: {}", loginRequest.getIdentifier());
+                throw new BadCredentialsException("Identifiants incorrects");
+            }
+
+            // 4. Authentification avec Spring Security
+            Authentication authentication = getAuthenticationManager().authenticate(
                 new UsernamePasswordAuthenticationToken(
                     loginRequest.getIdentifier(),
                     loginRequest.getPassword()
                 )
             );
 
-            // 2. Récupération de l'utilisateur authentifié
-            User user = findUserByIdentifier(loginRequest.getIdentifier())
-                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
-
-            // 3. Vérifications supplémentaires
-            validateUserStatus(user);
-
-            // 4. Génération des tokens
+            // 5. Génération des tokens
             String accessToken = jwtService.generateAccessToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);
 
-            // 5. Mise à jour de la dernière connexion
+            // 6. Mise à jour de la dernière connexion
             user.updateLastLoginDate();
             userRepository.save(user);
 
-            // 6. Création de la réponse
+            // 7. Création de la réponse
             LoginResponse response = LoginResponse.fromUser(
                 user, 
                 accessToken, 

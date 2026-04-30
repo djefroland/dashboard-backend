@@ -34,7 +34,7 @@ public class Employee extends BaseEntity {
     @Column(name = "user_id", nullable = false, unique = true)
     private Long userId;
 
-    @Column(name = "employee_id", unique = true)
+    @Column(name = "employee_id", length = 50, unique = true)
     @NotBlank(message = "L'ID employé est obligatoire")
     private String employeeId;
 
